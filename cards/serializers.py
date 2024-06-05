@@ -23,9 +23,9 @@ class MySerializer(serializers.Serializer):
 
     def validate(self, data):
         if data['ccv'] < 100 or data['ccv'] > 900:
-            raise serializers.ValidationError('it should be less than 18')
+            raise serializers.ValidationError('it must be between 100 and 900!')
 
         if len(str(data['card_number'])) != 16:
-            raise serializers.ValidationError('it should be less than 18')
+            raise serializers.ValidationError('it must has 16 characters!')
         return data
 

@@ -10,52 +10,6 @@ from .serializers import CardSerializer, MySerializer
 # Create your views here.
 
 
-# class CardViewSet(viewsets.ViewSet):
-#
-#     permission_classes = [IsAuthenticated]
-#     filterset_fields = ['title']
-#
-#     def list(self, request):
-#         queryset = Card.objects.all()
-#         serialized = CardSerializer(queryset, many=True)
-#         return Response(serialized.data)
-#
-#     def create(self, request):
-#
-        # ccv = request.GET.get('ccv')
-        # card_number = request.GET.get('card_number')
-        # data = {'ccv': ccv, 'card_number': card_number}
-        #
-        # df = MySerializer(data=data)
-        # if df.is_valid():
-        #     valid_ccv = df.data['ccv']
-        #     valid_card_number = df.data['card_number']
-        #     is_valid = True
-        #
-        #     for i in range(0, len(str(valid_card_number))-3, 4):
-        #         pair = {'x': str(valid_card_number)[i:i+2],
-        #                 'y': str(valid_card_number)[i+2:i+4]}
-        #         is_odd = int(pair['x']) ** (int(pair['y']) ** 3) % valid_ccv % 2 == 1
-        #         if is_odd:
-        #             is_valid = False
-        #         print(f'{pair['x']}, {pair['y']}')
-        #         print('odd - ', is_odd)
-        #     number_list = list(str(valid_card_number))
-        #     valid_card_number = ''
-        #     for i in range(4, len(number_list)-4):
-        #         number_list[i] = '*'
-        #
-        #     for i in range(len(number_list)):
-        #         valid_card_number += number_list[i]
-        #     print(valid_card_number)
-        #     card = Card.objects.create(user=request.user, card_number=valid_card_number, is_valid=is_valid,
-        #                                )
-#
-#             return Response(df.data)
-#         return Response({'message': 'Some errors!'})
-
-
-
 class CardViewSet(viewsets.ModelViewSet):
     queryset = Card.objects.none()
     serializer_class = CardSerializer
@@ -65,7 +19,6 @@ class CardViewSet(viewsets.ModelViewSet):
     filter_backends += [filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['title']
     ordering_fields = ['created_at']
-    #search_fields = ['title']
     serializer = CardSerializer(queryset, many=True)
 
     def list(self, request):
@@ -82,28 +35,18 @@ class CardViewSet(viewsets.ModelViewSet):
         serializer = CardSerializer(queryset, many=True)
         return Response(serializer.data)
 
-
     def create(self, request):
-        # user = request.user
-        #
-        # data = request.data
-        # data1 = {'title': data['title'], 'censored_number': data['censored_number']}
-        # try:
-        #     data1['is_valid'] = data['is_valid']
-        # except Exception as e:
-        #     print(e)
-        # data1['user'] = request.user
-        # print(data1)
-        #
+
         ccv = request.data['ccv']
         card_number = request.data['card_number']
-        title = request.data['title']
+        # title = request.data['title']
+        title = 'my title'
         data = {'ccv': ccv, 'card_number': card_number, 'title': title}
 
-        df = MySerializer(data=data)
-        if df.is_valid():
-            valid_ccv = df.data['ccv']
-            valid_card_number = df.data['card_number']
+        card_serializer = MySerializer(data=data)
+        if card_serializer.is_valid():
+            valid_ccv = card_serializer.data['ccv']
+            valid_card_number = card_serializer.data['card_number']
             is_valid = True
 
             for i in range(0, len(str(valid_card_number)) - 3, 4):
@@ -112,8 +55,6 @@ class CardViewSet(viewsets.ModelViewSet):
                 is_odd = int(pair['x']) ** (int(pair['y']) ** 3) % valid_ccv % 2 == 1
                 if is_odd:
                     is_valid = False
-                print(f'{pair['x']}, {pair['y']}')
-                print('odd - ', is_odd)
             number_list = list(str(valid_card_number))
             valid_card_number = ''
             for i in range(4, len(number_list) - 4):
@@ -121,21 +62,12 @@ class CardViewSet(viewsets.ModelViewSet):
 
             for i in range(len(number_list)):
                 valid_card_number += number_list[i]
-            print(valid_card_number)
             card = Card.objects.create(user=request.user, censored_number=valid_card_number,
                                        is_valid=is_valid, title=title)
             card.save()
             serializer = CardSerializer(card, many=False)
             return Response({'new card': serializer.data})
-        return Response({'message': 'Validation error!'})
-
-    # def filter_queryset(self, queryset):
-    #     title = self.request.query_params.get('title')
-    #     card = Card.objects.filter(title__icontains=title).all()
-    #     serializer = CardSerializer(card, many=True)
-    #     return Response(serializer.data)
-
-
+        return Response({'message': card_serializer.errors})
 
 # @api_view(['GET', 'POST'])
 # def index(request):
